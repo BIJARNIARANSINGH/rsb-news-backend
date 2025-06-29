@@ -1,17 +1,22 @@
-import express from 'express';
-import {
+const express = require('express');
+const router = express.Router();
+const {
   createNews,
   getAllNews,
-  getMyNews,
-  deleteNews
-} from '../controllers/newsController.js';
-import auth from '../middleware/auth.js';
+  getNewsById,
+  updateNews,
+  deleteNews,
+} = require('../controllers/newsController');
 
-const router = express.Router();
+const authMiddleware = require('../middleware/auth');
 
+// Public routes
 router.get('/', getAllNews);
-router.post('/', auth, createNews);
-router.get('/my', auth, getMyNews);
-router.delete('/:id', auth, deleteNews);
+router.get('/:id', getNewsById);
 
-export default router;
+// Admin-only routes
+router.post('/', authMiddleware.verifyToken, authMiddleware.isAdmin, createNews);
+router.put('/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, updateNews);
+router.delete('/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, deleteNews);
+
+module.exports = router;

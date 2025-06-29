@@ -1,22 +1,30 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const newsSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
   },
   content: {
     type: String,
-    required: true
+    required: true,
   },
-  image: {
-    type: String
+  imageUrl: {
+    type: String,
+    default: '',
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  }
-}, { timestamps: true });
+    required: true,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  timestamps: true,
+});
 
-export default mongoose.model('News', newsSchema);
+module.exports = mongoose.model('News', newsSchema);
