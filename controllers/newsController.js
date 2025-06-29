@@ -1,5 +1,5 @@
 import News from '../models/News.js';
-
+const News = require('../models/news');
 export const createNews = async (req, res) => {
   try {
     const news = new News({ ...req.body, author: req.user.id });
