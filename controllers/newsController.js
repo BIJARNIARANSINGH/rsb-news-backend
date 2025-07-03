@@ -1,77 +1,75 @@
-const News = require('../models/news');
+const News = require("../models/News");
 
-// Add a new news article (admin only)
-const createNews = async (req, res) => {
+// Create news
+exports.createNews = async (req, res) => {
   try {
-    const { title, content, imageUrl } = req.body;
+    const { title, content, category } = req.body;
+    const authorId = req.user.userId;
+    let mediaUrl = "";
 
-    const news = new News({
+    if (req.file) {
+      mediaUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const newsPost = new News({
       title,
       content,
-      imageUrl,
-      author: req.user._id,
+      category,
+      media: mediaUrl,
+      createdAt: new Date(),
     });
 
-    const savedNews = await news.save();
-    res.status(201).json(savedNews);
+    await newsPost.save();
+    res.status(201).json(newsPost);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create news' });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-// Get all news
-const getAllNews = async (req, res) => {
-  try {
-    const news = await News.find().populate('author', 'username').sort({ date: -1 });
-    res.status(200).json(news);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch news' });
-  }
+// Get all news (sorted newest first)
+exports.getAllNews = async (req, res) => {
+  const newsList = await News.find().sort({ createdAt: -1 });
+  res.status(200).json(newsList);
 };
 
 // Get single news by ID
-const getNewsById = async (req, res) => {
+exports.getNewsById = async (req, res) => {
+  const article = await News.findById(req.params.id);
+  if (!article) return res.status(404).json({ error: "Not found" });
+  res.status(200).json(article);
+};
+
+// Update news
+exports.updateNews = async (req, res) => {
   try {
-    const news = await News.findById(req.params.id).populate('author', 'username');
-    if (!news) {
-      return res.status(404).json({ error: 'News not found' });
+    const { title, content, category } = req.body;
+    let mediaUrl;
+
+    if (req.file) {
+      mediaUrl = `/uploads/${req.file.filename}`;
     }
-    res.status(200).json(news);
+
+    const updated = await News.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        content,
+        category,
+        ...(mediaUrl && { media: mediaUrl }),
+      },
+      { new: true }
+    );
+
+    res.status(200).json(updated);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch news' });
+    console.error(err);
+    res.status(500).json({ error: "Update failed" });
   }
 };
 
-// Update news article (admin only)
-const updateNews = async (req, res) => {
-  try {
-    const updatedNews = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedNews) {
-      return res.status(404).json({ error: 'News not found' });
-    }
-    res.status(200).json(updatedNews);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update news' });
-  }
-};
-
-// Delete news article (admin only)
-const deleteNews = async (req, res) => {
-  try {
-    const deletedNews = await News.findByIdAndDelete(req.params.id);
-    if (!deletedNews) {
-      return res.status(404).json({ error: 'News not found' });
-    }
-    res.status(200).json({ message: 'News deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete news' });
-  }
-};
-
-module.exports = {
-  createNews,
-  getAllNews,
-  getNewsById,
-  updateNews,
-  deleteNews,
+// Delete news
+exports.deleteNews = async (req, res) => {
+  await News.findByIdAndDelete(req.params.id);
+  res.status(200).json({ message: "Deleted successfully" });
 };

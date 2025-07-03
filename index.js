@@ -2,9 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-
-const userRoutes = require('./routes/userRoutes');
-const newsRoutes = require('./routes/newsRoutes');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -16,10 +14,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static image uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
+const userRoutes = require('./routes/userRoutes');
+const newsRoutes = require('./routes/newsRoutes');
+
 app.get('/', (req, res) => {
-  res.send('Welcome to RSB NEWS BACKEND');
+  res.send('📡 Welcome to RSB NEWS BACKEND — Powered by Express');
 });
+
 app.use('/api/users', userRoutes);
 app.use('/api/news', newsRoutes);
 
@@ -29,15 +34,13 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('MongoDB connected');
+  console.log('✅ MongoDB connected');
 
-  // Start server
-  const PORT = process.env.PORT
+  const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log('Server started on port ${PORT}');
+    console.log(`🚀 Server started on port ${PORT}`);
   });
-
 })
 .catch((err) => {
-  console.error('MongoDB connection error:', err.message);
+  console.error('❌ MongoDB connection error:', err.message);
 });
