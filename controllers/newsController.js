@@ -1,10 +1,11 @@
+// backend/controllers/newsController.js
+
 const News = require("../models/News");
 
 // Create news
 exports.createNews = async (req, res) => {
   try {
     const { title, content, category } = req.body;
-    const authorId = req.user.userId;
     let mediaUrl = "";
 
     if (req.file) {
@@ -27,17 +28,27 @@ exports.createNews = async (req, res) => {
   }
 };
 
-// Get all news (sorted newest first)
+// Get all news
 exports.getAllNews = async (req, res) => {
-  const newsList = await News.find().sort({ createdAt: -1 });
-  res.status(200).json(newsList);
+  try {
+    const newsList = await News.find().sort({ createdAt: -1 });
+    res.status(200).json(newsList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch news" });
+  }
 };
 
 // Get single news by ID
 exports.getNewsById = async (req, res) => {
-  const article = await News.findById(req.params.id);
-  if (!article) return res.status(404).json({ error: "Not found" });
-  res.status(200).json(article);
+  try {
+    const article = await News.findById(req.params.id);
+    if (!article) return res.status(404).json({ error: "Not found" });
+    res.status(200).json(article);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch news details" });
+  }
 };
 
 // Update news
@@ -70,6 +81,11 @@ exports.updateNews = async (req, res) => {
 
 // Delete news
 exports.deleteNews = async (req, res) => {
-  await News.findByIdAndDelete(req.params.id);
-  res.status(200).json({ message: "Deleted successfully" });
+  try {
+    await News.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Delete failed" });
+  }
 };

@@ -1,29 +1,44 @@
 const express = require('express');
-const router = express.Router();
-const { 
-  createNews, 
-  getAllNews, 
-  getNewsById, 
-  updateNews, 
-  deleteNews 
+const multer = require('multer');
+const router = express.Router();   // ⚠️ पहले router बनाओ
+
+const {
+  createNews,
+  getAllNews,
+  getNewsById,
+  updateNews,
+  deleteNews,
 } = require('../controllers/newsController');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 
-// 🚫 Multer और upload को हटा दिया गया है क्योंकि तुम JSON भेज रहे हो
+// Multer setup for media uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
+});
+const upload = multer({ storage });
 
-// Create news
-router.post('/', verifyToken, isAdmin, createNews);
+// ✅ Test route to check file upload without auth
+router.post('/test-upload', upload.single('file'), (req, res) => {
+  console.log('File:', req.file);
+  res.json({
+    message: '✅ File uploaded successfully!',
+    file: req.file,
+  });
+});
 
-// Get all news
+// ✅ CREATE news with media upload (protected + admin only)
+router.post('/', upload.single('file'), createNews);
+// ✅ READ all news
 router.get('/', getAllNews);
 
-// Get single news
+// ✅ READ single news by ID
 router.get('/:id', getNewsById);
 
-// Update news
-router.put('/:id', verifyToken, isAdmin, updateNews);
+// ✅ UPDATE news (with optional new media)
+router.put('/:id', verifyToken, isAdmin, upload.single('file'), updateNews);
 
-// Delete news
+// ✅ DELETE news
 router.delete('/:id', verifyToken, isAdmin, deleteNews);
 
 module.exports = router;
