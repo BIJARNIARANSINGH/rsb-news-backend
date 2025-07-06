@@ -1,5 +1,3 @@
-// backend/controllers/newsController.js
-
 const News = require("../models/News");
 
 // Create news
@@ -9,7 +7,8 @@ exports.createNews = async (req, res) => {
     let mediaUrl = "";
 
     if (req.file) {
-      mediaUrl = `/uploads/${req.file.filename}`;
+      // ✅ Absolute URL बनाएंगे
+      mediaUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     }
 
     const newsPost = new News({
@@ -58,7 +57,8 @@ exports.updateNews = async (req, res) => {
     let mediaUrl;
 
     if (req.file) {
-      mediaUrl = `/uploads/${req.file.filename}`;
+      // ✅ Absolute URL बनाएंगे
+      mediaUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     }
 
     const updated = await News.findByIdAndUpdate(
