@@ -12,26 +12,29 @@ dotenv.config();
 // Create express app
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: ['https://rsb-news-frontend.vercel.app'],
-  credentials: true
-}));
+// CORS Middleware (✅ Vercel frontend allow)
+app.use(
+  cors({
+    origin: ['https://rsb-news-frontend.vercel.app'],
+    credentials: true,
+  })
+);
+
+// JSON parser
 app.use(express.json());
 
-// Serve static uploads (images, videos)
+// Serve static uploads (images/videos)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Routes
-const userRoutes = require('./routes/userRoutes');
-const newsRoutes = require('./routes/newsRoutes');
 
 // Base route
 app.get('/', (req, res) => {
   res.send('📡 Welcome to RSB NEWS BACKEND — Powered by Express & MongoDB');
 });
 
-// API routes
+// Routes
+const userRoutes = require('./routes/userRoutes');
+const newsRoutes = require('./routes/newsRoutes');
+
 app.use('/api/users', userRoutes);
 app.use('/api/news', newsRoutes);
 
@@ -47,6 +50,8 @@ mongoose
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server started on port ${PORT}`);
+      console.log(`🌐 API Base URL: http://localhost:${PORT}/api`);
+      console.log(`📁 Static Files: http://localhost:${PORT}/uploads`);
     });
   })
   .catch((err) => {
